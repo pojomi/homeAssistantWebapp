@@ -690,7 +690,7 @@ body {
       align-self: center;
       justify-self: start;
       font-size: 20px;
-      width: 100dvw;
+      max-width: 100dvw;
       height:60px;
   
       
