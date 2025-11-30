@@ -1,0 +1,733 @@
+body {
+  background-color: rgba(231, 120, 120, 0.452);
+  overflow: hidden;
+}
+
+#waveBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  fill: url(#waveBackgroundGradient);
+  stroke: url(#test);
+  stroke-opacity: 0.5;
+  z-index: -1;
+}
+
+#waveBackground-2 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  fill: url(#test);
+  stroke: url(#waveBackgroundGradient);
+  stroke-opacity: 0.5;
+  z-index: -2;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  display: grid;
+  grid-template-areas:
+    ". settings"
+    "cards calendar";
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 30px auto;
+}
+
+.weekday {
+  grid-area: day;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 1em;
+  align-self: start;
+  background-color: #2c2c2c75;
+  font-weight: bold;
+  color: white;
+}
+
+#root > #calendarContainer {
+  grid-area: calendar;
+  display: grid;
+  grid-template:
+    "month month month month month month month " 
+    "day day day day day day day" 
+    "date date date date date date date";
+  justify-self: end;
+  width: 500px;
+  height: fit-content;
+  border-radius: 10px;
+  background-color: #2c2c2c30;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  #monthName {
+    grid-area: month;
+    height: 1em;
+    padding-bottom: 10px;
+    text-align: center;
+    background-color: #2c2c2c75;
+    font-weight: bold;
+    color: white;
+  }
+  .calendarDays {
+    grid-area: date;
+    display: grid;
+    width: 500px;
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .calendarDay {
+    display: grid;
+    grid-template-areas:
+      "dateNum"
+      "."
+      "icons";
+    grid-template-rows: repeat(3, 1fr);
+    height: 60px;
+    font-weight: bold;
+    text-align: left;
+    padding-left: 3px;
+    background-color: #ffffff30;
+    border: solid 1px #00000030;
+  }
+  .calendarDay:hover {
+    box-shadow: inset 2px 2px 4px #ffffff75, inset -2px -2px 4px #ffffff75;
+  }
+  .dateStamp {
+    grid-area: dateNum;
+  }
+  .mdiTrashCan {
+    grid-area: icons;
+    justify-self: end;
+  }
+  button {
+    /* appearance: none; */
+    /* border: none; */
+    align-items: center;
+    text-align: center;
+    color: white;
+    font-weight: bold;
+    background-color: transparent;
+  }
+  button#prevMonth {
+    margin-right: 20px;
+  }
+  button:hover {
+    box-shadow: inset 2px 2px 2px #ffffff75, inset -2px -2px 4px #ffffff75;
+  }
+  button#nextMonth {
+    margin-left: 20px;
+  }
+}
+
+.cardContainer {
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-columns: 300px;
+  max-height: 100vh;
+  max-width: 50vh;
+  gap: 10px;
+
+  .thermostatCard {
+    display: grid;
+    grid-row: 1 / 2;
+    grid-template-rows: repeat(2, fit-content);
+    width: 250px;
+    background-color: rgb(87, 80, 80);
+    padding-top: 5px;
+    padding-bottom: 10px;
+    border-radius: 5px;
+    padding-left: 2px;
+    padding-right: 2px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    .header {
+      display: inline-block;
+      justify-self: center;
+    }
+    .thermostatControl {
+      display: grid;
+      align-items: center;
+      grid-template-columns: repeat(4, 1fr);
+
+      button {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        border-color: transparent;
+        appearance: none;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+        background-color:#2c2c2c80;
+      }
+
+      button:active {
+        box-shadow: inset 2px 2px 3px hsla(0, 0%, 100%, 0.6), -2px -2px 3px inset hsla(0, 0%, 100%, 0.6);
+      }
+      button:not(button:active):hover {
+        box-shadow: 2px 2px 5px hsla(0, 0%, 100%, 0.6), -2px -2px 5px hsla(0, 0%, 100%, 0.6);
+      }
+
+      #tempDown {
+        justify-self: end;
+      }
+      #setTemp {
+        justify-self: start;
+        font-size: 14px;
+        align-self: end;
+        margin-bottom: 3.5px;
+      }
+      #currentTemp {
+        justify-self: end;
+        padding-left: 62.5px;
+        padding-right: 5px;
+        font-size: 20px;
+      }
+      #tempUp {
+        justify-self: start;
+      }
+    }
+  }
+
+  .lightCardContainer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 350px;
+    gap: 5px;
+    align-items: center;
+    
+    .lightCard {
+      display: flex;
+      flex-direction: row;
+      flex-wrap:wrap;
+      /* display: grid; */
+      /* grid-template-rows: repeat(auto-fill, minmax(1em, 1fr)); */
+      width: 250px;
+      padding-top: 5px;
+      padding-bottom: 10px;
+      background-color: rgb(87, 80, 80);
+      border-radius: 5px;
+      padding-left: 2px;
+      padding-right: 2px;
+      opacity: 0.8;
+      transition: opacity 0.3s ease;
+        
+        .editContainer {
+          width: 100%;
+
+          .cardTitle {
+            justify-self: center;
+            margin-bottom: 5px;
+            font-size: 16px;
+            text-transform:capitalize;
+            color: white;
+            font-weight: bold;
+          }
+          .deleteButton {
+            float:inline-end;
+            appearance: none;
+            cursor: default;
+            z-index: 10;
+          }
+          .mdiSensorIcon {
+            color: white;
+            vertical-align: middle;
+          }
+          .editButton {
+            appearance: none;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 1.5em;
+            height: 1.5em;
+            padding: 0;
+            border-radius: 50%;
+            border-color: transparent;
+            background-color:#443f3f;
+          }
+          .sensorObject {
+          /* grid-area: sensorObject;*/
+          justify-self: center;
+          align-self: center;
+          font-size: 16px;
+          font-weight: bold;
+          color: white;
+          }
+        }
+      .lightControlContainer {
+        display: flex;
+        width: 100%;
+        height:auto;
+        .lightButton {
+        display: flex;
+        padding: 0;
+        position: relative;
+        justify-content: center;
+        align-items: center;
+        width:30px;
+        height:30px;
+        border-radius:50%;
+        border-color: transparent;
+        background-color: #443f3f;
+        }
+        button:active {
+          box-shadow: inset 1px 1px 1px 1px white;
+        }
+        .mdiLightbulbOutline {
+          color:white;
+        }
+        .brightnessSliderContainer {
+          position: relative;
+          anchor-name: --brightnessSlider;
+          position-anchor: --editBox;
+          top: anchor(bottom);
+          width: calc(100% - 40px);
+          margin-left: 5px;
+          height: 2em;
+          background-color: #2c2c2c86;
+          border-radius: 5px;
+          
+          .brightnessFill {
+            display: flex;
+            anchor-name: --sliderThumb;
+            height: 100%;
+            background-color: white;
+            border-radius: 5px;
+          }
+          
+          .brightnessSlider {
+            position: absolute;
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+          }
+          .brightnessSlider::-webkit-slider-thumb {
+            justify-self: start;
+            align-self: center;
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            background-color: inherit;
+            opacity: 0;
+          }
+          .sliderTooltip {
+            position: absolute;
+            position-anchor: --sliderThumb;
+            bottom: anchor(top);
+            left: anchor(right);
+            background-color: grey;
+            font-weight: bold;
+          }
+        }
+      }
+    }
+    
+    .outletCard {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: rgb(87, 80, 80);
+      opacity: 0.8;
+        button {
+          appearance: none;
+          width: 50px;
+          height: 50px;
+          background-color: transparent;
+          border-radius: 50%;
+          border-color: transparent;
+          
+        }
+        
+        button:active {
+          /* offset-x, offset-y, blur-radius, spread-radius */
+          box-shadow: inset 0px 0px 4px 4px hsla(0, 0%, 100%, 0.6);
+        }
+
+        button:not(button:active):hover {
+          box-shadow: 0px 0px 4px 4px hsla(0, 0%, 100%, 0.6);
+        }
+        
+      .mdiPowerPlugOutline {
+        vertical-align: middle;
+        color: white;
+      }
+    }
+  }
+}
+
+@keyframes draggable {
+  from {border: 4px dashed black;}
+  to {border: 2px dashed black;}
+}
+
+#root > .createDivContainer {
+  display: grid;
+  grid-area: settings;
+  justify-self: end;
+  grid-template-columns: auto auto;
+  column-gap: 5px;
+  align-items: center;
+  
+  #createCard {
+    display: grid;
+    grid-column: auto;
+    justify-self: end;
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+    background-color: #2c2c2c50;
+    font-weight: bold;
+    color: white;
+  }
+  
+  #dragToggle {
+    appearance: none;
+    padding: 1.5px;
+    width: 22px;
+    height: 22px;
+    justify-content: center;
+    align-items: center;
+    background-color: #2c2c2c50;
+    font-weight: bold;
+    color: white;
+  }
+}
+
+.entityContainer {
+  grid-area: calendar;
+  justify-self: center;
+  justify-items: center;
+  overflow: auto;
+  width: 500px;
+  height: 350px;
+  padding: 10px;
+  overflow: scroll;
+  border-radius: 5px;
+  background-color: rgba(66, 66, 66, 0.637);
+  transition: max-height 0.5s ease, opacity 0.3s ease;
+  .createCardEntitySelect {
+    display: grid;
+    position: relative;
+    width: 100%;
+    height: fit-content;
+    max-height: 350px;
+    overflow:hidden;
+    background-color: transparent;
+    transition: opacity 0.3s ease-in-out, max-height 0.5s ease-in-out;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    border-radius: 5px;
+  }
+  
+  #searchBar {
+    position:sticky;
+    z-index: 1;
+    background-color: transparent;
+    color: white;
+    text-align: center;
+    font-size: 16px;
+  }
+  
+  .entitySelection {
+    /* position: sticky;
+    top: 0; */
+    z-index: 1;
+    overflow:scroll;
+    background-color:#2c2c2c;
+    color: white;
+    font-weight: bold;
+    width: 100%;
+    border-bottom: 2px solid white;
+    border-radius: 5px;
+  }
+  
+  .entitySelection:active {
+    opacity: 0.6;
+  }
+  
+  .lightList {
+    display: grid;
+    -webkit-appearance: none;
+    appearance: none;
+    max-width: 100%;
+    max-height: 0px;
+    scrollbar-width: none;
+    /* position: relative; */
+    overflow: scroll;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: opacity 0.3s ease, max-height 0.5s ease, display 0.3s ease;
+  }
+  
+  .sensorList {
+    display: grid;
+    -webkit-appearance: none;
+    appearance: none;
+    max-width: 100%;
+    max-height: 0px;
+    scrollbar-width: none;
+    /*background-color: rgba(94, 94, 94, 0.65);*/
+    position: relative;
+    overflow: scroll;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: opacity 0.3s ease, max-height 0.5s ease, display 0.3s ease;
+  }
+  
+  .newCardNameDiv {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    position: absolute;
+    width: inherit;
+    height: inherit;
+    justify-content: center;
+    align-content: center;
+    z-index: 10;
+    border-radius: 5px;
+    background-color: rgba(66, 66, 66, 0.637);
+  
+    input {
+      height: 3em;
+      font-size: 16px;
+      margin-right: 5px;
+      text-transform: capitalize;
+    }
+  
+    button {
+      height: 2em;
+      width: fit-content;
+      align-self: center;
+    }
+  }
+}
+
+
+#selectParent {
+  flex-direction: column;
+  gap: 5px;
+  > button {
+    width: 75%;
+    border-radius: 5px;
+    background-color: #443f3f;
+    text-transform: capitalize;
+    color: white;
+    font-weight: bold;
+  }
+}
+
+#makeSelection {
+  justify-self: center;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  body {
+    background-color: transparent;
+    margin: 0 0 0 0;
+  }
+  #waveBackground {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+  }
+  #waveBackground-2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100dvw;
+    height: 100dvh;
+  }
+  #root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    justify-self: center;
+    margin: 0;
+    width: 100dvw;
+    height: 100dvh;
+    grid-template-areas:
+      ". ."
+      "cards calendar"
+      "settings .";
+    grid-template-columns: 100dvw 100dvw;
+    grid-template-rows: 0 fit-content fit-content;
+    padding: 0;
+    overflow-x:scroll;
+    scroll-snap-type: x mandatory;
+    overflow-y:hidden;
+  }
+
+  #root > .createDivContainer {
+    position: absolute;
+    grid-area: settings / span 3;
+    justify-self: end;
+    align-self: end;
+    
+    #createCard {
+      height: 1fr;
+      width: fit-content;
+      align-content: center;
+      font-size: 16px;
+      padding: 10px;
+      
+    }
+    
+    #dragToggle {
+      height:42px;
+      width: 30px;
+      
+      .mdiLockOutline {
+        vertical-align: middle;
+      }
+    }
+  }
+
+
+
+  #root > #calendarContainer {
+    grid-area: calendar / span 3;
+    scroll-snap-align: start;
+    justify-self: left;
+    margin-top: 10px;
+    width: 100%;
+    max-width: 100dvw;
+    .calendarDays {
+      width: 100%;
+    }
+    
+  }
+
+  .entityContainer {
+    position: fixed;
+    grid-area: cards / span 3;
+    justify-self: start;
+    top: calc(0dvh + 75px);
+    width: 100%;
+    max-width: 100dvw;
+    height: 500px;
+    padding: 0;
+    z-index: 9;
+    background-color: rgba(66, 66, 66, 0.85);
+    transition: opacity 0.3s ease;
+    
+    .newCardNameDiv {
+      background-color: inherit;
+      >button {
+        height: 40px;
+      }
+    }
+  
+    .createCardEntitySelect {
+      display: grid;
+      grid-template-rows: 50px;
+      width: 100%;
+      max-width: 100dvw;
+      max-height: 500px;
+      
+      #searchBar {
+        height: 50px;
+      }
+     
+      .entitySelection {
+       height: 50px;
+        font-size: 20px;
+      }
+
+      .lightList {
+        overflow: scroll;
+        button {
+          height: 40px;
+          font-size: 16px;
+          font-weight:normal;
+        }
+      }
+    
+      .sensorList {
+        overflow: scroll;
+        button {
+          height: 40px;
+          font-size: 16px;
+          font-weight:normal;
+        }
+      }
+    }
+  }
+  
+  .cardContainer {
+    grid-area: cards;
+    /* display: grid; */
+    display: flex;
+    flex-direction: row;
+    flex-wrap:wrap;
+    align-self:start;
+    scroll-snap-align: start;
+    overflow-y: scroll;
+    /* grid-auto-flow: row; */
+    /* grid-template-columns: 300px; */
+    /* justify-content: stretch; */
+    width: 100dvh;
+    max-height: 100dvh;
+    gap: 10px;
+    
+    .thermostatCard{
+      align-self: center;
+      justify-self: start;
+      font-size: 20px;
+      width: 100dvw;
+      height:60px;
+  
+      
+      .thermostatControl {
+        button {
+          width: 40px;
+          height: 40px;
+          font-size: 20px;
+        }
+        #currentTemp {
+          font-size: 24px;
+          padding-left: 90px;
+        }
+        #setTemp {
+          font-size: 16px;
+          margin-bottom: 8px;
+        }
+  
+      }
+    }
+    .lightCardContainer {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      width: 100dvw;
+      gap: 5px;
+      align-items: center;
+      
+      .lightCard {
+        align-self: center;
+        justify-self: stretch;
+        flex: 1;
+        height: 60px;
+        max-width: 100dvw;
+      }
+    }
+  }
+}
+
+/* .dragRule {
+  position:relative;
+  top: 20px;
+} */
