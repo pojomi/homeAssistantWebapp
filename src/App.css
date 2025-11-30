@@ -354,7 +354,7 @@ body {
         button:not(button:active):hover {
           box-shadow: 0px 0px 4px 4px hsla(0, 0%, 100%, 0.6);
         }
-        
+
       .mdiPowerPlugOutline {
         vertical-align: middle;
         color: white;
@@ -574,6 +574,7 @@ body {
   #root > .createDivContainer {
     position: absolute;
     grid-area: settings / span 3;
+    max-width: 100dvw;
     justify-self: end;
     align-self: end;
     
