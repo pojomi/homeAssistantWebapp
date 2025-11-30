@@ -536,7 +536,7 @@ body {
   body {
     background-color: transparent;
     margin: 0 0 0 0;
-    border-radius: calc(100dvh * 0.1);
+    border-radius: calc(100dvh * 0.125);
   }
   #waveBackground {
     position: fixed;
