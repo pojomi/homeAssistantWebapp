@@ -577,6 +577,8 @@ body {
     grid-area: settings / span 3;
     justify-self: end;
     align-self: end;
+    margin-bottom: 3px;
+    margin-right: 3px;
     
     #createCard {
       height: 1fr;
