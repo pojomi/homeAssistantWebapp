@@ -559,6 +559,7 @@ body {
     margin: 0;
     width: 100dvw;
     height: 100dvh;
+    border-radius: 12px;
     grid-template-areas:
       ". ."
       "cards calendar"
@@ -574,7 +575,6 @@ body {
   #root > .createDivContainer {
     position: absolute;
     grid-area: settings / span 3;
-    max-width: 100dvw;
     justify-self: end;
     align-self: end;
     
