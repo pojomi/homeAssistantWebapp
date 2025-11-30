@@ -559,7 +559,7 @@ body {
     margin: 0;
     width: 100dvw;
     height: 100dvh;
-    border-radius: 12px;
+    border-radius: calc(100dvh * 0.25);
     grid-template-areas:
       ". ."
       "cards calendar"
