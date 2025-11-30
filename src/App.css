@@ -536,6 +536,7 @@ body {
   body {
     background-color: transparent;
     margin: 0 0 0 0;
+    border-radius: calc(100dvh * 0.1);
   }
   #waveBackground {
     position: fixed;
@@ -559,7 +560,6 @@ body {
     margin: 0;
     width: 100dvw;
     height: 100dvh;
-    border-radius: calc(100dvh * 0.1);
     grid-template-areas:
       ". ."
       "cards calendar"
