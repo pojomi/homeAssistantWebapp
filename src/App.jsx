@@ -25,7 +25,7 @@ import {
 
 enableDragDropTouch();
 
-const haToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiI5OTdiODNmM2QyNzQ0ZGZmOGI5NDcyNTdjMjhhMWEzMiIsImlhdCI6MTc2MDkxNTQzNSwiZXhwIjoyMDc2Mjc1NDM1fQ.9wJocdg6urAeK8JfbIvMgmfCsLPh45nQJ3NNcq3MJSI';
+const haToken = import.meta.env.VITE_HA_TOKEN;
 const haURL = 'wss://prvokqi6answv8fyvaknnv2wbqr5fmzl.ui.nabu.casa/api/websocket';
 
 const ws = new WebSocket(haURL);
