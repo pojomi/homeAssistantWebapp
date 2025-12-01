@@ -682,15 +682,15 @@ body {
     /* grid-auto-flow: row; */
     /* grid-template-columns: 300px; */
     /* justify-content: stretch; */
-    width: 100dvh;
+    max-width: 100dvh;
     max-height: 100dvh;
     gap: 10px;
     
     .thermostatCard{
       align-self: center;
-      justify-self: stretch;
+      justify-self: start;
       font-size: 20px;
-      max-width: 100dvw;
+      width: 100dvw;
       height:60px;
   
       
