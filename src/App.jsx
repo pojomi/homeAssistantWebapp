@@ -37,8 +37,9 @@ const ws = new WebSocket(haURL);
     }));
   }
 
-function App() {
 
+
+function App() {
   // Hooks
   const createRef = useRef(null);
   const createDivRef = useRef(null);
@@ -239,6 +240,7 @@ function App() {
     }
   }
 
+  const [showOutlets, setShowOutlets] = useState(false);
   function getOutlets() {
     if (outlets.length === 0) {
       const switches = allEntities.filter(entity => entity.entity_id.startsWith('switch.'));
@@ -247,6 +249,8 @@ function App() {
       localStorage.setItem('outlets', JSON.stringify(parsedOutlets));
       console.log('parsed outlets: ', parsedOutlets);
     }
+    showOutlets && setShowOutlets(false);
+    !showOutlets && setShowOutlets(true);
   }
 
 function createOutletObject(e) {
@@ -264,27 +268,30 @@ function createOutletObject(e) {
       setSelected(clickedEntity);
     }
   }
+  setShowOutlets(false);
 }
   
   function OutletList() {
-    return (
-      outlets.map(o => (
-        <button type='button' 
-          key={o.entity_id} 
-          className='entitySelection'
-          id={o.entity_id} 
-          style={{
-          appearance: 'none', 
-          backgroundColor: '#2c2c2c50', 
-          fontWeight: 'bold',
-          color: 'white'
-          }}
-          onClick={createOutletObject}
-          >
-          {o.attributes.friendly_name ? o.attributes.friendly_name : o.entity_id}
-        </button>
-      ))
-    )
+    if (outlets.length > 0 && showOutlets === true) {
+      return (
+        outlets.map(o => (
+          <button type='button' 
+            key={o.entity_id} 
+            className='entitySelection'
+            id={o.entity_id} 
+            style={{
+              appearance: 'none', 
+              backgroundColor: '#2c2c2c50', 
+              fontWeight: 'bold',
+              color: 'white'
+            }}
+            onClick={createOutletObject}
+            >
+            {o.attributes.friendly_name ? o.attributes.friendly_name : o.entity_id}
+          </button>
+        ))
+      )
+    }
   }
   
   
