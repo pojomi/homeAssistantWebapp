@@ -20,7 +20,9 @@ import {
   mdiLockOffOutline,
   mdiTrashCan,
   mdiThermometer,
-  mdiWaterPercent
+  mdiWaterPercent,
+  mdiMotionSensorOff,
+  mdiMotionSensor
 } from '@mdi/js';
 
 enableDragDropTouch();
@@ -44,39 +46,47 @@ function App() {
   const createRef = useRef(null);
   const createDivRef = useRef(null);
   const calendarRef = useRef(null);
+  const fanIconRef = useRef(null);
   const lightCardDiv = useRef(null);
-  const [outlets, setOutlets] = useState([]);
-  const [outletObjects, setOutletObjects] = useState([]);
-  const [newOutlet, setNewOutlet] = useState(false);
-  const [thermostat, setThermostat] = useState({})
-  const [lights, setLights] = useState([]);
-  const [sensors, setSensors] = useState([]);
-  const [tstatCard, setTstatCard] = useState(false);
-  const [lightCards, setLightCards] = useState([]); // Store created light cards
-  const [sensorObjects, setSensorObjects] = useState([]); // Store created sensor objects
-  const [isDraggable, setIsDraggable] = useState(false);
-  const [isCardNew, setIsCardNew] = useState(false);
-  const [isMenuVisible, setIsMenuVisible] = useState(false);
-  const [opacity, setOpacity] = useState('0');
   const searchBar = useRef(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [matches, setMatches] = useState([{}]);
-  const lightsRef = useRef(null);
   const nameRef = useRef(null);
-  const [isLightVisible, setIsLightVisible] = useState(false);
-  const [lightMaxHeight, setLightMaxHeight] = useState('0px');
-  const [sensorMaxHeight, setSensorMaxHeight] = useState('0px');
+  const lightsRef = useRef(null);
   const sensorsRef = useRef(null);
-  const [isSensorVisible, setIsSensorVisible] = useState(false);
-  const [newSensor, setNewSensor] = useState(false);
-  const lightCardsAdj = [...lightCards];
   const dragTarget = useRef(null);
   const draggedOverTarget = useRef(null);
-  const [name, setName] = useState(null);
-  const [selected, setSelected] = useState(null);
-  const [changedEntity, setChangedEntity] = useState();
+  const fanSpeedContainerRef = useRef(null);
+  const fanSpeedRef = useRef(null);
   const [allEntities, setAllEntities] = useState([]);
+  const [changedEntity, setChangedEntity] = useState();
+  const [fanObjects, setFanObjects] = useState([]);
+  const [fans, setFans] = useState([]);
+  const [fanSpeedWidth, setFanSpeedWidth] = useState('0px');
+  const [isCardNew, setIsCardNew] = useState(false);
+  const [isDraggable, setIsDraggable] = useState(false);
+  const [isLightVisible, setIsLightVisible] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSensorVisible, setIsSensorVisible] = useState(false);
+  const [lights, setLights] = useState([]);
+  const [lightCards, setLightCards] = useState([]); // Store created light cards
+  const [lightMaxHeight, setLightMaxHeight] = useState('0px');
+  const [matches, setMatches] = useState([{}]);
+  const [newSensor, setNewSensor] = useState(false);
+  const [opacity, setOpacity] = useState('0');
+  const [outlets, setOutlets] = useState([]);
+  const [newFan, setNewFan] = useState(false);
+  const [newOutlet, setNewOutlet] = useState(false);
+  const [outletObjects, setOutletObjects] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [sensors, setSensors] = useState([]);
+  const [sensorMaxHeight, setSensorMaxHeight] = useState('0px');
+  const [sensorObjects, setSensorObjects] = useState([]); // Store created sensor objects
   const [serviceSocketId, setServiceSocketID] = useState(24);
+  const [showFans, setShowFans] = useState(false);
+  const [showOutlets, setShowOutlets] = useState(false);
+  const [thermostat, setThermostat] = useState({})
+  const [tstatCard, setTstatCard] = useState(false);
+  const lightCardsAdj = [...lightCards];
   const idCheck = serviceSocketId;
   
   ws.onmessage = (event) => {
@@ -92,6 +102,30 @@ function App() {
           console.log('Request for states accepted');
           setAllEntities(data.result);
           console.log('Set all entities');
+          if (fans.length === 0) {
+            const parsedFans = data.result.filter(entity => entity.entity_id.startsWith('fan.'));
+            setFans(parsedFans);
+          }
+          if (outlets.length === 0) {
+            const switches = data.result.filter(entity => entity.entity_id.startsWith('switch.'));
+            const parsedOutlets = switches.filter(entity => entity.attributes.device_class === 'outlet');
+            setOutlets(parsedOutlets);
+            console.log('outlets set in ws.onmessage');
+          }
+          if (lights.length === 0) {
+            const lightEntities = data.result.filter(entity => entity.entity_id.startsWith('light.'));
+            setLights(lightEntities);
+            console.log('lights set in ws.onmessage');
+          }
+          if (sensors.length === 0) {
+            // const sensorEntities = data.result.filter(entity => entity.entity_id.startsWith('sensor.') || entity.entity_id.startsWith('binary_sensor.') && entity.entity_id.includes('door') || entity.entity_id.includes('presence'));
+            const sensorEntities = data.result.filter(entity => (entity.entity_id.startsWith('sensor') || 
+              entity.entity_id.startsWith('binary_sensor')) && entity.attributes.device_class 
+              && (entity.attributes.device_class === 'humidity' || entity.attributes.device_class === 'occupancy' 
+              || entity.attributes.device_class === 'temperature' || entity.attributes.device_class === 'door'));
+            setSensors(sensorEntities);
+            console.log('sensors set in ws.onmessage');
+          }
           ws.send(JSON.stringify({
             id: 18,
             type: 'subscribe_events',
@@ -116,6 +150,13 @@ function App() {
                     o.entity.state = entity.state;
                   }
                 })
+                card.fan && card.fan.map(f => {
+                  if (f.entity.entity_id === entity.entity_id) {
+                    f.entity.state = entity.state;
+                    f.entity.attributes.percentage = entity.attributes.percentage;
+                    setFanSpeedWidth(`${Math.round((entity.attributes.percentage / 100) * 210)}px`);
+                  }
+                })
               }));
             });
           };
@@ -135,16 +176,19 @@ function App() {
             }));
           }, 30000);
         };
-        if (data.id === 18 && lightCards.some(card => card.entity.entity_id === data.event?.data.entity_id || card.sensor.some(s => s.entity.entity_id === data.event?.data.entity_id))) {
-          setChangedEntity(data.event);
-        }
         if (data.id === 18) {
+          if (lightCards.some(card => card.entity.entity_id === data.event?.data.entity_id || card.sensor.some(s => s.entity.entity_id === data.event?.data.entity_id))) {
+            setChangedEntity(data.event);
+          }
           if (lightCards.some(card => card.entity && card.entity.entity_id === data.event?.data.entity_id || card.outlet && card.outlet.some(o => o.entity.entity_id === data.event?.data.entity_id))) {
             setChangedEntity(data.event);
           }
-        }
-        if (data.id === 18 && thermostat.entity_id === data.event?.data.entity_id) {
-          setChangedEntity(data.event);
+          if (lightCards.some(card => card.fan && card.fan.some(f => f.entity.entity_id === data.event?.data.entity_id))) {
+            setChangedEntity(data.event);
+          }
+          if (thermostat.entity_id === data.event?.data.entity_id) {
+            setChangedEntity(data.event);
+          }
         }
         // Ping and pong every 30s to keep socket open
         if (data.id === 19) {
@@ -211,6 +255,12 @@ function App() {
     }
   }, [outlets]);
 
+  useEffect(() => {
+    if (fans.length > 0) {
+      localStorage.setItem('fans', JSON.stringify(fans));
+    }
+  }, [fans]);
+
 
   // Toggle visibility of .entityContainer when '+' button is clicked
   const createMenu = () => {
@@ -240,15 +290,7 @@ function App() {
     }
   }
 
-  const [showOutlets, setShowOutlets] = useState(false);
   function getOutlets() {
-    if (outlets.length === 0) {
-      const switches = allEntities.filter(entity => entity.entity_id.startsWith('switch.'));
-      const parsedOutlets = switches.filter(entity => entity.attributes.device_class === 'outlet');
-      setOutlets(parsedOutlets);
-      localStorage.setItem('outlets', JSON.stringify(parsedOutlets));
-      console.log('parsed outlets: ', parsedOutlets);
-    }
     showOutlets && setShowOutlets(false);
     !showOutlets && setShowOutlets(true);
   }
@@ -293,64 +335,89 @@ function createOutletObject(e) {
       )
     }
   }
-  
-  
-  function OutletCards({ entity_id, state }) {
 
-    function outletToggle(e) {
-      if (state === 'on') {
-        ws.send(JSON.stringify({
-          id: serviceSocketId,
-          type: 'call_service',
-          domain: 'switch',
-          service: 'turn_off',
-          target: {
-            entity_id: `${entity_id}`
-          }
-        }))
-        console.log(`sent switch.turn_off to ${entity_id}`);
-      }
-      if (state === 'off') {
-        ws.send(JSON.stringify({
-          id: serviceSocketId,
-          type: 'call_service',
-          domain: 'switch',
-          service: 'turn_on',
-          target: {
-            entity_id: `${entity_id}`
-          }
-        }))
-        console.log(`sent switch.toggle to ${entity_id}... state? ${state}`);
-      }
-      setServiceSocketID(idCheck + 1);
-    }
-    return (
-      <div className='outletCard' id={`${entity_id}Div`} key={`${entity_id}DivKey`}>
-        <button type='button' id={entity_id} 
-          key={`${entity_id}Button`}
-          onClick={outletToggle}
-
-        >
-          <span id='outletIcon' key={`${entity_id}Span`}>
-            <Icon 
-              path={state === 'on' ? mdiPowerPlugOutline : mdiPowerPlugOffOutline} 
-              size={1} className='mdiPowerPlugOutline'
-              key={`${entity_id}Icon`}
-            />
-          </span>
-        </button>
-      </div>
-    )
+function getFans() {
+  showFans ? setShowFans(false) : setShowFans(true);
+}
+function createFanObject(e) {
+  if (e.target.id.includes('fan.')) {
+    const clickedEntity = e.target.id;
+    // Remove the clicked fan entity from the list
+    const updatedFanList = fans.filter(f => f.entity_id !== clickedEntity);
+    const haEntity = allEntities.find(entity => entity.entity_id === clickedEntity);
+    setFans(updatedFanList);
+    setNewFan(true);
+    localStorage.setItem('fans', JSON.stringify(updatedFanList));
+    setFanObjects([...fanObjects, { id: clickedEntity, entity: haEntity }]);
+    setSelected(clickedEntity);
   }
+  setShowFans(false);
+}
+  
+function FanList() {
+  if (fans.length > 0 && showFans) {
+  return (
+    fans.map(f => (
+      <button type='button' className='entitySelection' id={f.entity_id} 
+        key={f.entity_id} 
+        onClick={createFanObject}>
+          {f.attributes.friendly_name ? f.attributes.friendly_name : f.entity_id}
+      </button>
+    ))
+  )}
+}
+  
+function OutletCards({ entity_id, state }) {
+
+  function outletToggle(e) {
+    if (state === 'on') {
+      ws.send(JSON.stringify({
+        id: serviceSocketId,
+        type: 'call_service',
+        domain: 'switch',
+        service: 'turn_off',
+        target: {
+          entity_id: `${entity_id}`
+        }
+      }))
+      console.log(`sent switch.turn_off to ${entity_id}`);
+    }
+    if (state === 'off') {
+      ws.send(JSON.stringify({
+        id: serviceSocketId,
+        type: 'call_service',
+        domain: 'switch',
+        service: 'turn_on',
+        target: {
+          entity_id: `${entity_id}`
+        }
+      }))
+      console.log(`sent switch.toggle to ${entity_id}... state? ${state}`);
+    }
+    setServiceSocketID(idCheck + 1);
+  }
+  return (
+    <div className='outletCard' id={`${entity_id}Div`} key={`${entity_id}DivKey`}>
+      <button type='button' id={entity_id} 
+        key={`${entity_id}Button`}
+        onClick={outletToggle}
+
+      >
+        <span id='outletIcon' key={`${entity_id}Span`}>
+          <Icon 
+            path={state === 'on' ? mdiPowerPlugOutline : mdiPowerPlugOffOutline} 
+            size={1} className='mdiPowerPlugOutline'
+            key={`${entity_id}Icon`}
+          />
+        </span>
+      </button>
+    </div>
+  )
+}
 
   // Function to retrieve and display list of Home Assistant light entities
   const getLights = () => {  
     if (isLightVisible === false) {
-      if (lights.length === 0) {
-        const lightEntities = allEntities.filter(entity => entity.entity_id.startsWith('light.'));
-        setLights(lightEntities);
-        localStorage.setItem('lights', JSON.stringify(lightEntities));
-      }
       setTimeout(() => setSensorMaxHeight('0px'), 10);
       setTimeout(() => setIsSensorVisible(false), 310);
       setTimeout(() => setIsLightVisible(true), 10);
@@ -387,7 +454,7 @@ function createOutletObject(e) {
     }
   }
 
-  const lookupSearch = async (e) => {
+  const lookupSearch = (e) => {
     setIsSearching(true);
     setLightMaxHeight('175px');
     setSensorMaxHeight('175px');
@@ -397,9 +464,7 @@ function createOutletObject(e) {
       light.attributes.friendly_name.toLowerCase().includes(searchVal.toLowerCase()));
     searchList.sensors = sensors.filter(sensor =>
       sensor.entity_id.toLowerCase().includes(searchVal.toLowerCase()));
-    if (searchList.lights.length > 0 || searchList.sensors.length > 0) {
-      setMatches(searchList);
-    }
+    setMatches(searchList);
   }
 
   const SearchResultsLights = () => {
@@ -451,13 +516,8 @@ function createOutletObject(e) {
   }
 
   // Function to retrieve and display list of Home Assistant sensor entities
-  const getSensors = async () => {
+  const getSensors = () => {
     if (isSensorVisible === false) {
-      if (sensors.length === 0) {
-        const sensorEntities = allEntities.filter(entity => entity.entity_id.startsWith('sensor.') || entity.entity_id.startsWith('binary_sensor.') && entity.entity_id.includes('door'));
-        setSensors(sensorEntities);
-        localStorage.setItem('sensors', JSON.stringify(sensorEntities));
-      }
       setTimeout(() => setLightMaxHeight('0px'), 10);
       setTimeout(() => setIsLightVisible(false), 310);
       setIsSensorVisible(true);
@@ -487,7 +547,9 @@ function createOutletObject(e) {
             }}
             onClick={CreateSensorObject}
           >
-          {sensor.attributes.friendly_name ? sensor.attributes.friendly_name : sensor.entity_id}
+          {sensor.attributes.friendly_name && sensor.attributes.friendly_name}
+          <br />
+          {sensor.entity_id}
           </button>
         ))
       )
@@ -495,7 +557,7 @@ function createOutletObject(e) {
   }
 
   // When an entity is selected, add it to [lightCards]
-  const CreateLightCard = async (e) => {
+  const CreateLightCard = (e) => {
     const clickedEntity = e.target.id;
     if (clickedEntity.includes('light.')) {
       const clickedLight = lights.find(light => light.entity_id === clickedEntity);
@@ -544,6 +606,20 @@ function createOutletObject(e) {
   const setParent = (e) => {
     const parentCard = lightCards.find(card => card.entity.entity_id === e.target.id);
     
+    if (newFan) {
+      const fanObj = fanObjects.find(fan => fan.id === selected);
+      parentCard.fan ? null : parentCard.fan = [];
+      parentCard.fan.push(fanObj);
+      setNewFan(false);
+      setOpacity('0');
+      setTimeout(() => {
+        localStorage.setItem('cards', JSON.stringify(lightCards));
+        setIsMenuVisible(false);
+        calendarRef.current.style.opacity = '1';
+        calendarRef.current.style.display = 'grid';
+      }, 300);
+    }
+
     if (newOutlet) {
       const outletObj = outletObjects.find(outlet => outlet.id === selected);
       parentCard.outlet ? null : parentCard.outlet = [];
@@ -582,7 +658,7 @@ function createOutletObject(e) {
   
   function SelectParentCard() {
     return (
-      <div className='newCardNameDiv' id='selectParent' style={{display: newSensor || newOutlet ? 'flex' : 'none'}}>
+      <div className='newCardNameDiv' id='selectParent' style={{display: newSensor || newOutlet || newFan ? 'flex' : 'none'}}>
         <span id='makeSelection'>Assign to card:</span>
         {lightCards.map(card => (
           <button type='button' key={card.entity.entity_id} className='cardSelection' id={card.entity.entity_id} onClick={setParent}>{card.id}</button>
@@ -597,7 +673,7 @@ function createOutletObject(e) {
     return (
       <div className='newCardNameDiv' style={{display: isCardNew ? 'flex' : 'none'}}>
             <input ref={nameRef} type='text' id='newCardNameInput' defaultValue='Enter name for card'
-            onFocus={(e) => e.target.select()} />
+            onFocus={(e) => e.target.select()} onKeyUp={saveNewCardName} />
             <button type='button' id='saveCardName' onClick={saveNewCardName}>Save</button>
       </div>
     )
@@ -605,19 +681,21 @@ function createOutletObject(e) {
 
   // Handle naming new card
   function saveNewCardName(e) {
-    const targetCard = lightCards.find(card => card.id === selected);
-    targetCard.id = nameRef.current.value;
-    setIsCardNew(false);
-    // Close the menu
-    setOpacity('0');
-    setTimeout(() => {
-        localStorage.setItem('cards', JSON.stringify(lightCards));
-        setIsLightVisible(false);
-        setIsSensorVisible(false);
-        setIsMenuVisible(false);
-        calendarRef.current.style.opacity = '1';
-        calendarRef.current.style.display = 'grid';
-      }, 300);
+    if (e.type === 'keyup' && e.key === 'Enter' || e.type === 'click') {
+      const targetCard = lightCards.find(card => card.id === selected);
+      targetCard.id = nameRef.current.value;
+      setIsCardNew(false);
+      // Close the menu
+      setOpacity('0');
+      setTimeout(() => {
+          localStorage.setItem('cards', JSON.stringify(lightCards));
+          setIsLightVisible(false);
+          setIsSensorVisible(false);
+          setIsMenuVisible(false);
+          calendarRef.current.style.opacity = '1';
+          calendarRef.current.style.display = 'grid';
+        }, 300);
+    }
   }
   
   // Handle deleting card
@@ -740,7 +818,6 @@ function createOutletObject(e) {
    }
   }
 
-
   // Light Card Component
   function LightCard({ entity, entityName, entityRGB, card, children }) {
     const inputRef = useRef(null);
@@ -787,6 +864,9 @@ function createOutletObject(e) {
       tooltipRef.current.style.display = 'none';
     }
 
+    
+
+
     function lightToggle() {
       if (entity.state === 'on') {
         ws.send(JSON.stringify({
@@ -815,6 +895,8 @@ function createOutletObject(e) {
       }
       setServiceSocketID(idCheck + 1);
     }
+
+    
     
 
     const [isTitleVisible, setIsTitleVisible] = useState(true);
@@ -842,7 +924,7 @@ function createOutletObject(e) {
               display: isDraggable ? 'block' : 'none'
             }}>X</button>
             <span ref={cardTitle} className='cardTitle' id={entity.entity_id}
-            style={{display: isTitleVisible ? 'grid' : 'none'}}>{name ? name : entityName}</span>
+            style={{display: isTitleVisible ? 'grid' : 'none'}}>{entityName}</span>
             <div className='sensorObject' style={{display: card.sensor.length > 0 ? 'block' : 'none' }}>
             {card.sensor.map(sensorInd => (
               sensorInd.entity && sensorInd.entity.entity_id.startsWith('sensor.') &&
@@ -864,6 +946,7 @@ function createOutletObject(e) {
             ))}
             {card.sensor.map(sensorInd => (
               sensorInd.entity && sensorInd.entity.entity_id.startsWith('binary_sensor.') &&
+              sensorInd.entity.entity_id.includes('door') &&
               <span className='sensorAttributes' key={sensorInd.id}>
                 <Icon path={sensorInd.entity.state === 'off' ? mdiDoorClosed 
                   : sensorInd.entity.state === 'on' ? mdiDoorOpen 
@@ -873,6 +956,19 @@ function createOutletObject(e) {
                   key={sensorInd.entity.entity_id}
                 />
               </span>      
+            ))}
+            {card.sensor.map(sensorInd => (
+              sensorInd.entity && sensorInd.entity.entity_id.startsWith('binary_sensor.') && 
+              sensorInd.entity.entity_id.includes('presence') &&
+              <span className='sensorAttributes' key={sensorInd.id}>
+                <Icon path={sensorInd.entity.state === 'off' ? mdiMotionSensorOff
+                  : sensorInd.entity.state === 'on' ? mdiMotionSensor
+                  : null}
+                  size={1}
+                  className='mdiSensorIcon'
+                  key={sensorInd.entity.entity_id}
+                />
+              </span>
             ))}
             </div>
           </div> 
@@ -918,12 +1014,114 @@ function createOutletObject(e) {
                   </div>
                 </div>
               </div>
-            </div>  
+            </div>
+          {card.fan && card.fan.length > 0 && (
+            <div className='fanCard' id={`${card.fan[0].entity.entity_id}Div`} disabled={isDraggable} key={`${card.fan[0].entity.entity_id}Key`}>
+                <div className='fanSpeedContainer'>
+                  <button type='button' id={card.fan[0].entity.entity_id} 
+                    key={`${card.fan[0].entity.entity_id}Button`}
+                    onClick={e => fanToggle(e, card)} >
+                      <Icon className='mdiFan' path={card.fan[0].entity.state === 'on' ? mdiFan : card.fan[0].entity.state === 'off' ? mdiFanOff : null} 
+                        size={'20px'} 
+                        key={`${card.fan[0].entity.entity_id}Icon`} 
+                        style={{
+                          animation:card.fan[0].entity.state === 'off' ? '' : 'fanSpin 1s linear infinite'}}  
+                    />
+                  </button>
+                    <input type='range' id={card.fan[0].entity && card.fan[0].entity.entity_id}
+                      ref={fanSpeedRef} 
+                      min='0'
+                      max='100'
+                      step='16.66666'
+                      value={sliderValue}
+                      onChange={e => handleChange(e)} 
+                      onClick={e => controlFanSpeed(e, card)}
+                    />
+                  <div className='fanSpeedSliderContainer' 
+                    ref={fanSpeedContainerRef}
+                    style={{
+                      width: card.fan[0].entity.state === 'on' ? `${fanSpeedWidth}` : '0px',
+                      transition: 'width 0.3s ease'
+                    }}>
+                  </div>
+                </div>
+            </div>
+          )}
         </div>
         {children}
       </div>
     );
   }
+
+  const [sliderValue, setSliderValue] = useState(25);
+    
+    function handleChange(e) {
+      const eVal = e.target.value;
+      setSliderValue(eVal);
+      setFanSpeedWidth(`${Math.round((eVal / 100) * 210)}px`)
+    }
+
+  function controlFanSpeed(e, card) {
+      const fanPct = e.target.value;
+      setSliderValue(fanPct);
+      if (card.fan && card.fan[0].entity.state === 'on') {
+        ws.send(JSON.stringify({
+          id: serviceSocketId,
+          type: 'call_service',
+          domain: 'fan',
+          service: 'set_percentage',
+          service_data: {
+            percentage: Math.round(fanPct)
+          },
+          target: {
+            entity_id: card.fan[0].entity.entity_id
+          }
+        }))
+      }
+      if (card.fan && card.fan[0].entity.state === 'off') {
+        ws.send(JSON.stringify({
+          id: serviceSocketId,
+          type: 'call_service',
+          domain: 'fan',
+          service: 'set_percentage',
+          service_data: {
+            percentage: Math.round(fanPct)
+          },
+          target: {
+            entity_id: card.fan[0].entity.entity_id
+          }
+        }))
+      }
+      setServiceSocketID(idCheck + 1);
+    }
+  
+  function fanToggle(e, card) {
+      if (card.fan && card.fan[0].entity.state === 'on') {
+        ws.send(JSON.stringify({
+          id: serviceSocketId,
+          type: 'call_service',
+          domain: 'fan',
+          service: 'turn_off',
+          target: {
+            entity_id: card.fan[0].entity.entity_id
+          }
+        }))
+      }
+      if (card.fan && card.fan[0].entity.state === 'off') {
+        console.log('fan is off');
+        ws.send(JSON.stringify({
+          id: serviceSocketId,
+          type: 'call_service',
+          domain: 'fan',
+          service: 'turn_on',
+          target: {
+            entity_id: card.fan[0].entity.entity_id
+          }
+        }))
+      }
+      setServiceSocketID(idCheck + 1);
+    }
+
   const holidays = [];
   holidays[0] = [20]; holidays[1] = []; holidays[2] = []; holidays[3] = []; holidays[4] = [26]; 
   holidays[5] = [19]; holidays[6] = [4]; holidays[7] = [11]; holidays[8] = [1]; holidays[9] = [13];
@@ -1102,6 +1300,16 @@ function createOutletObject(e) {
       console.log('outlet updated: ', changedEntity.data.new_state.state);
       setChangedEntity(null);
     }
+    if (lightCards.find(card => card.fan && card.fan.some(f => f.entity.entity_id === changedEntity.data.entity_id))) {
+      const cardIndex = lightCards.findIndex(card => card.fan && card.fan.some(f => f.entity.entity_id === changedEntity.data.entity_id));
+      const fanIndex = lightCards[cardIndex].fan && lightCards[cardIndex].fan.findIndex(f => f.entity.entity_id === changedEntity.data.entity_id);
+      lightCards[cardIndex].fan[fanIndex].entity.state = changedEntity.data.new_state.state;
+      lightCards[cardIndex].fan[fanIndex].entity.attributes.percentage = changedEntity.data.new_state.attributes.percentage;
+      setFanSpeedWidth(`${Math.round(210 * (changedEntity.data.new_state.attributes.percentage * 0.01))}px`)
+      localStorage.setItem('cards', JSON.stringify(lightCards));
+      setChangedEntity(null);
+      console.log('updated: ', changedEntity);
+    }
   }
   return ( 
     <>
@@ -1176,6 +1384,10 @@ function createOutletObject(e) {
               Plugs
             </button>
             <OutletList />
+            <button type='button' className='entitySelection' id='fanEntity' onClick={getFans}>
+              Fans
+            </button>
+            <FanList />
             <button type='button' className='entitySelection' id='lightEntity' onClick={getLights}>
               Light
             </button>
@@ -1210,13 +1422,12 @@ function createOutletObject(e) {
               card={card}
             >
               {card.outlet && card.outlet.length > 0 && card.outlet.map(o => (
-
                 <OutletCards 
                   key={o.entity.entity_id}
                   entity_id={o.entity.entity_id} 
                   entity={o.entity} 
-                  state={o.entity.state} />))}
-              
+                  state={o.entity.state} />
+              ))}
             </LightCard>
             ))}
               
